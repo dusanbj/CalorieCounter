@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import rs.fon.demo.dto.DailyEntryResponseDTO;
 import rs.fon.demo.dto.FoodEntryRequestDTO;
 import rs.fon.demo.model.DailyEntry;
@@ -118,5 +119,80 @@ public class FoodService {
         dailyEntryResponseDTO.setDate(dailyEntry.getDate());
         dailyEntryResponseDTO.setTotalCalories(dailyEntry.getTotalCalories());
         return dailyEntryResponseDTO;
+    }
+
+    public DailyEntryResponseDTO readDailyEntry(LocalDate date) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username);
+
+        DailyEntry dailyEntry = dailyEntryRepository.findByUserAndDate(user, date);
+        List<FoodEntry> entries = dailyEntry.getFoodEntries();
+
+        DailyEntryResponseDTO dailyEntryResponseDTO = new DailyEntryResponseDTO();
+        List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+        for(int i=0; i<entries.size(); i++) {
+            FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+            feDTO.setFoodName(entries.get(i).getFoodItem().getName());
+            feDTO.setGrams(entries.get(i).getGrams());
+            entriesDTO.add(feDTO);
+        }
+        dailyEntryResponseDTO.setEntries(entriesDTO);
+        dailyEntryResponseDTO.setId(dailyEntry.getId());
+        dailyEntryResponseDTO.setDate(dailyEntry.getDate());
+        dailyEntryResponseDTO.setTotalCalories(dailyEntry.getTotalCalories());
+        return dailyEntryResponseDTO;
+    }
+
+    public List<DailyEntryResponseDTO> readDailyEntries() {
+        // Dobavi trenutno ulogovanog korisnika
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username);
+
+        // Dobavi sve DailyEntry zapise za korisnika
+        List<DailyEntry> dailyEntries = dailyEntryRepository.findAllByUser(user);
+
+        // Pripremi listu DTO-ova za povratak
+        List<DailyEntryResponseDTO> responseList = new ArrayList<>();
+
+        for (DailyEntry dailyEntry : dailyEntries) {
+            List<FoodEntry> entries = dailyEntry.getFoodEntries();
+            List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+
+            for (FoodEntry entry : entries) {
+                FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+                feDTO.setFoodName(entry.getFoodItem().getName());
+                feDTO.setGrams(entry.getGrams());
+                entriesDTO.add(feDTO);
+            }
+
+            DailyEntryResponseDTO dto = new DailyEntryResponseDTO();
+            dto.setId(dailyEntry.getId());
+            dto.setDate(dailyEntry.getDate());
+            dto.setTotalCalories(dailyEntry.getTotalCalories());
+            dto.setEntries(entriesDTO);
+
+            responseList.add(dto);
+        }
+
+        return responseList;
+    }
+
+    public FoodItem readFoodItem(String name) {
+        return foodItemRepository.findByName(name);
+    }
+
+    public List<FoodItem> readFoodItems() {
+        return foodItemRepository.findAll();
+    }
+
+    @Transactional
+    public Long deleteDailyEntry(LocalDate date) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username);
+
+        DailyEntry dailyEntry = dailyEntryRepository.findByUserAndDate(user, date);
+        Long id = dailyEntry.getId();
+        dailyEntryRepository.deleteByUserAndDate(user, date);
+        return id;
     }
 }

@@ -42,7 +42,14 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .disable()
                 .authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
-                //.anyRequest().authenticated()
+
+                // Zabranjeno za USER
+                .antMatchers("/food/createFoodItem").hasRole("ADMIN")
+                //DODATI U SERVIS I KONTROLER DELETE FOOD ITEM I DA SAMO ADMIN IMA PRISTUP TOJ RUTI
+                // Ostalo dostupno za oba
+                .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
+
+                .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 

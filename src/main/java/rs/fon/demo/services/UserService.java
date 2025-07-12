@@ -7,6 +7,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import rs.fon.demo.model.User;
 import rs.fon.demo.repositories.UserRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import java.util.ArrayList;
 
@@ -27,6 +31,13 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User name " + username + " not found");
         }
 
-        return new org.springframework.security.core.userdetails.User(myUser.getUsername(), myUser.getPassword(), new ArrayList<>());
+        // Pretvaramo jednu rolu u listu SimpleGrantedAuthority
+        var authorities = List.of(new SimpleGrantedAuthority(myUser.getRole().name()));
+
+        return new org.springframework.security.core.userdetails.User(
+                myUser.getUsername(),
+                myUser.getPassword(),
+                authorities
+        );
     }
 }

@@ -38,14 +38,14 @@ public class BootstrapData implements CommandLineRunner {
         User admin = new User();
         admin.setUsername("admin");
         admin.setPassword(passwordEncoder.encode("admin"));
-        admin.setRole(Role.ADMIN);
+        admin.setRole(Role.ROLE_ADMIN);
         this.userRepository.save(admin);
 
         for (int i = 1; i <= 10; i++) {
             User user = new User();
             user.setUsername("user" + i);
             user.setPassword(this.passwordEncoder.encode("user" + i));
-            user.setRole(Role.USER);
+            user.setRole(Role.ROLE_USER);
             this.userRepository.save(user);
         }
 
