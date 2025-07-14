@@ -44,7 +44,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 sati
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 sat
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .compact();
     }

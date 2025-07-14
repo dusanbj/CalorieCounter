@@ -14,7 +14,8 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    @Column(name = "id")
+    private Long id;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -28,12 +29,12 @@ public class User implements UserDetails {
 
     // === GETTERI I SETTERI ===
 
-    public Long getUserId() {
-        return userId;
+    public Long getId() {
+        return id;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     @Override

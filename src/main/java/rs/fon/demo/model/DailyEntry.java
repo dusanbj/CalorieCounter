@@ -20,6 +20,7 @@ public class DailyEntry {
     private LocalDate date;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "user_user_id", referencedColumnName = "id")
     private User user;
 
     @OneToMany(mappedBy = "dailyEntry", cascade = CascadeType.ALL, orphanRemoval = true)
