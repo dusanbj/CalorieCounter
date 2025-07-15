@@ -62,20 +62,22 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
         }
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userOptional.get());
+        Map<String, Object> refreshTokenData = refreshTokenService.createRefreshToken(userOptional.get());
 
-        Map<String, String> response = new HashMap<>();
+        Map<String, Object> response = new HashMap<>();
         response.put("accessToken", accessToken);
-        response.put("refreshToken", refreshToken.getToken());
+        response.put("refreshToken", refreshTokenData.get("token")); // raw token
+        response.put("refreshTokenExpiry", refreshTokenData.get("expiryDate"));
 
         return ResponseEntity.ok(response);
     }
 
+
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody Map<String, String> body) {
-        String refreshTokenString = body.get("refreshToken");
+        String rawToken = body.get("refreshToken");
 
-        Optional<RefreshToken> tokenOptional = refreshTokenService.findByToken(refreshTokenString);
+        Optional<RefreshToken> tokenOptional = refreshTokenService.findMatchingToken(rawToken);
         if (!tokenOptional.isPresent()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
         }
