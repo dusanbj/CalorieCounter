@@ -1,6 +1,5 @@
 package rs.fon.demo.configuration;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -9,22 +8,26 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import rs.fon.demo.filters.JwtFilter;
+import rs.fon.demo.services.TokenBlacklistService;
 import rs.fon.demo.services.UserService;
+import rs.fon.demo.utils.JwtUtil;
 
 @EnableWebSecurity
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserService userService;
-    private final JwtFilter jwtFilter;
+    private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    @Autowired
-    public SpringSecurityConfig(UserService userService, JwtFilter jwtFilter) {
+    public SpringSecurityConfig(UserService userService,
+                                JwtUtil jwtUtil,
+                                TokenBlacklistService tokenBlacklistService) {
         this.userService = userService;
-        this.jwtFilter = jwtFilter;
+        this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -34,26 +37,25 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-
         httpSecurity
                 .cors()
                 .and()
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/auth/**").permitAll()
-
-                // Zabranjeno za USER
+                .antMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
                 .antMatchers("/food/createFoodItem").hasRole("ADMIN")
-                //DODATI U SERVIS I KONTROLER DELETE FOOD ITEM I DA SAMO ADMIN IMA PRISTUP TOJ RUTI
-                // Ostalo dostupno za oba
                 .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
-
                 .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        httpSecurity.addFilterBefore(this.jwtFilter, UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+    }
+
+    @Bean
+    public JwtFilter jwtFilter() {
+        return new JwtFilter(userService, jwtUtil, tokenBlacklistService);
     }
 
     @Override
@@ -61,11 +63,4 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     public AuthenticationManager authenticationManagerBean() throws Exception {
         return super.authenticationManager();
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-        //return NoOpPasswordEncoder.getInstance();
-    }
-
 }

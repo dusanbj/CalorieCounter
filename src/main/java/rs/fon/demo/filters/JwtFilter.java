@@ -1,12 +1,15 @@
 package rs.fon.demo.filters;
 
 import io.jsonwebtoken.Claims;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import rs.fon.demo.services.TokenBlacklistService;
 import rs.fon.demo.services.UserService;
 import rs.fon.demo.utils.JwtUtil;
 
@@ -18,15 +21,18 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+//@Component
 public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilter {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtFilter(UserService userService, JwtUtil jwtUtil) {
+    @Autowired
+    public JwtFilter(UserService userService, JwtUtil jwtUtil, TokenBlacklistService tokenBlacklistService) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -42,9 +48,16 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             try {
+                // Proverava da li je token blacklistovan
+                if (tokenBlacklistService.isTokenBlacklisted(jwt)) {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    return;
+                }
+
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                // Optionally log or handle malformed token
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                return;
             }
         }
 

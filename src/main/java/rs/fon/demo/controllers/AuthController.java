@@ -8,11 +8,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import rs.fon.demo.model.RefreshToken;
+import rs.fon.demo.model.Role;
 import rs.fon.demo.model.User;
 import rs.fon.demo.repositories.UserRepository;
 import rs.fon.demo.requests.LoginRequest;
-import rs.fon.demo.responses.LoginResponse;
+import rs.fon.demo.requests.RegisterRequest;
 import rs.fon.demo.services.RefreshTokenService;
+import rs.fon.demo.services.TokenBlacklistService;
 import rs.fon.demo.services.UserService;
 import rs.fon.demo.utils.JwtUtil;
 
@@ -30,18 +32,37 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager,
                           UserService userService,
                           JwtUtil jwtUtil,
                           RefreshTokenService refreshTokenService,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          TokenBlacklistService tokenBlacklistService) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtUtil = jwtUtil;
         this.refreshTokenService = refreshTokenService;
         this.userRepository = userRepository;
+        this.tokenBlacklistService = tokenBlacklistService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (userRepository.findByUsername(request.getUsername()) != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username already taken");
+        }
+
+        Role role = request.getRole() != null ? request.getRole() : Role.ROLE_USER;
+
+        userService.registerUser(
+                request.getUsername(),
+                request.getPassword(),
+                role
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
     }
 
     @PostMapping("/login")
@@ -66,12 +87,11 @@ public class AuthController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("accessToken", accessToken);
-        response.put("refreshToken", refreshTokenData.get("token")); // raw token
+        response.put("refreshToken", refreshTokenData.get("token"));
         response.put("refreshTokenExpiry", refreshTokenData.get("expiryDate"));
 
         return ResponseEntity.ok(response);
     }
-
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody Map<String, String> body) {
@@ -107,7 +127,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not found");
         }
 
+        long expirationMillis = jwtUtil.extractExpiration(token).getTime() - System.currentTimeMillis();
+        tokenBlacklistService.blacklistToken(token, expirationMillis);
+
         refreshTokenService.deleteByUser(userOptional.get());
+
         return ResponseEntity.ok("Logged out successfully");
     }
 }

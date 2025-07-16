@@ -4,24 +4,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import rs.fon.demo.model.Role;
 import rs.fon.demo.model.User;
 import rs.fon.demo.repositories.UserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.List;
-import java.util.stream.Collectors;
-
-import java.util.ArrayList;
 
 @Service
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -31,7 +33,6 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User name " + username + " not found");
         }
 
-        // Pretvaramo jednu rolu u listu SimpleGrantedAuthority
         var authorities = List.of(new SimpleGrantedAuthority(myUser.getRole().name()));
 
         return new org.springframework.security.core.userdetails.User(
@@ -39,5 +40,13 @@ public class UserService implements UserDetailsService {
                 myUser.getPassword(),
                 authorities
         );
+    }
+
+    public User registerUser(String username, String password, Role role) {
+        User user = new User();
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setRole(role);
+        return userRepository.save(user);
     }
 }
