@@ -91,6 +91,7 @@ public class AuthController {
         response.put("accessToken", accessToken);
         response.put("refreshToken", refreshTokenData.get("token"));
         response.put("refreshTokenExpiry", refreshTokenData.get("expiryDate"));
+        response.put("role", userOptional.get().getRole()); //stavljeno zbog fronta
 
         return ResponseEntity.ok(response);
     }
