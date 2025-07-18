@@ -1,4 +1,4 @@
-package rs.fon.demo.requests;
+package rs.fon.demo.dto.requests;
 
 public class LoginRequest {
     private String username;

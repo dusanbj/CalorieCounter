@@ -1,15 +1,11 @@
 package rs.fon.demo.services;
 
-import org.apache.tomcat.jni.Local;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import rs.fon.demo.dto.DailyEntryResponseDTO;
-import rs.fon.demo.dto.FoodEntryRequestDTO;
+import rs.fon.demo.dto.responses.DailyEntryResponse;
+import rs.fon.demo.dto.requests.FoodEntryRequest;
 import rs.fon.demo.model.DailyEntry;
 import rs.fon.demo.model.FoodEntry;
 import rs.fon.demo.model.FoodItem;
@@ -22,7 +18,6 @@ import rs.fon.demo.repositories.UserRepository;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class FoodService {
@@ -49,21 +44,23 @@ public class FoodService {
     //  2. proverava da li postoji danasnji dnevni unos za tog usera
     //  3. ako postoji poziva update za taj isti dnevni unos
     //  4. ako ne postoji - pravimo novi dnevni unos i unosimo prvu namirnicu za taj dan
-    public DailyEntryResponseDTO createDailyEntry(FoodEntryRequestDTO foodEntryRequestDTO) {
+    public DailyEntryResponse createDailyEntry(FoodEntryRequest foodEntryRequest) {
         //hvata usera
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username);
 
+
+
         if(dailyEntryRepository.findByUserAndDate(user, LocalDate.now()) != null) {
-            return this.updateDailyEntry(foodEntryRequestDTO);
+            return this.updateDailyEntry(foodEntryRequest);
         } else {
             DailyEntry dailyEntry = new DailyEntry();
             dailyEntry.setDate(LocalDate.now());
             dailyEntry.setUser(user);
 
             FoodEntry foodEntry = new FoodEntry();
-            foodEntry.setFoodItem(foodItemRepository.findByName(foodEntryRequestDTO.getFoodName()));
-            foodEntry.setGrams(foodEntryRequestDTO.getGrams());
+            foodEntry.setFoodItem(foodItemRepository.findByName(foodEntryRequest.getFoodName()));
+            foodEntry.setGrams(foodEntryRequest.getGrams());
             foodEntry.setDailyEntry(dailyEntry);
             List<FoodEntry> foodEntries = new ArrayList<>();
             foodEntries.add(foodEntry);
@@ -72,32 +69,32 @@ public class FoodService {
             dailyEntryRepository.save(dailyEntry);
             foodEntryRepository.save(foodEntry);
             //mapiranje u DTO
-            DailyEntryResponseDTO dailyEntryResponseDTO = new DailyEntryResponseDTO();
-            List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+            DailyEntryResponse dailyEntryResponse = new DailyEntryResponse();
+            List<FoodEntryRequest> entriesDTO = new ArrayList<>();
 
             for(int i=0; i<foodEntries.size(); i++) {
-                FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+                FoodEntryRequest feDTO = new FoodEntryRequest();
                 feDTO.setFoodName(foodEntries.get(i).getFoodItem().getName());
                 feDTO.setGrams(foodEntries.get(i).getGrams());
                 entriesDTO.add(feDTO);
             }
-            dailyEntryResponseDTO.setEntries(entriesDTO);
-            dailyEntryResponseDTO.setId(dailyEntry.getId());
-            dailyEntryResponseDTO.setDate(dailyEntry.getDate());
-            dailyEntryResponseDTO.setTotalCalories(dailyEntry.getTotalCalories());
-            return dailyEntryResponseDTO;
+            dailyEntryResponse.setEntries(entriesDTO);
+            dailyEntryResponse.setId(dailyEntry.getId());
+            dailyEntryResponse.setDate(dailyEntry.getDate());
+            dailyEntryResponse.setTotalCalories(dailyEntry.getTotalCalories());
+            return dailyEntryResponse;
         }
     }
 
-    public DailyEntryResponseDTO updateDailyEntry(FoodEntryRequestDTO foodEntryRequestDTO) {
+    public DailyEntryResponse updateDailyEntry(FoodEntryRequest foodEntryRequest) {
         //hvata usera
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username);
 
         DailyEntry dailyEntry = dailyEntryRepository.findByUserAndDate(user, LocalDate.now());
         FoodEntry foodEntry = new FoodEntry();
-        foodEntry.setFoodItem(foodItemRepository.findByName(foodEntryRequestDTO.getFoodName()));
-        foodEntry.setGrams(foodEntryRequestDTO.getGrams());
+        foodEntry.setFoodItem(foodItemRepository.findByName(foodEntryRequest.getFoodName()));
+        foodEntry.setGrams(foodEntryRequest.getGrams());
         foodEntry.setDailyEntry(dailyEntry);
         List<FoodEntry> entries = dailyEntry.getFoodEntries();
         entries.add(foodEntry);
@@ -106,44 +103,44 @@ public class FoodService {
         foodEntryRepository.save(foodEntry);
         dailyEntryRepository.save(dailyEntry);
         //mapiranje u DTO
-        DailyEntryResponseDTO dailyEntryResponseDTO = new DailyEntryResponseDTO();
-        List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+        DailyEntryResponse dailyEntryResponse = new DailyEntryResponse();
+        List<FoodEntryRequest> entriesDTO = new ArrayList<>();
         for(int i=0; i<entries.size(); i++) {
-            FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+            FoodEntryRequest feDTO = new FoodEntryRequest();
             feDTO.setFoodName(entries.get(i).getFoodItem().getName());
             feDTO.setGrams(entries.get(i).getGrams());
             entriesDTO.add(feDTO);
         }
-        dailyEntryResponseDTO.setEntries(entriesDTO);
-        dailyEntryResponseDTO.setId(dailyEntry.getId());
-        dailyEntryResponseDTO.setDate(dailyEntry.getDate());
-        dailyEntryResponseDTO.setTotalCalories(dailyEntry.getTotalCalories());
-        return dailyEntryResponseDTO;
+        dailyEntryResponse.setEntries(entriesDTO);
+        dailyEntryResponse.setId(dailyEntry.getId());
+        dailyEntryResponse.setDate(dailyEntry.getDate());
+        dailyEntryResponse.setTotalCalories(dailyEntry.getTotalCalories());
+        return dailyEntryResponse;
     }
 
-    public DailyEntryResponseDTO readDailyEntry(LocalDate date) {
+    public DailyEntryResponse readDailyEntry(LocalDate date) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username);
 
         DailyEntry dailyEntry = dailyEntryRepository.findByUserAndDate(user, date);
         List<FoodEntry> entries = dailyEntry.getFoodEntries();
 
-        DailyEntryResponseDTO dailyEntryResponseDTO = new DailyEntryResponseDTO();
-        List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+        DailyEntryResponse dailyEntryResponse = new DailyEntryResponse();
+        List<FoodEntryRequest> entriesDTO = new ArrayList<>();
         for(int i=0; i<entries.size(); i++) {
-            FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+            FoodEntryRequest feDTO = new FoodEntryRequest();
             feDTO.setFoodName(entries.get(i).getFoodItem().getName());
             feDTO.setGrams(entries.get(i).getGrams());
             entriesDTO.add(feDTO);
         }
-        dailyEntryResponseDTO.setEntries(entriesDTO);
-        dailyEntryResponseDTO.setId(dailyEntry.getId());
-        dailyEntryResponseDTO.setDate(dailyEntry.getDate());
-        dailyEntryResponseDTO.setTotalCalories(dailyEntry.getTotalCalories());
-        return dailyEntryResponseDTO;
+        dailyEntryResponse.setEntries(entriesDTO);
+        dailyEntryResponse.setId(dailyEntry.getId());
+        dailyEntryResponse.setDate(dailyEntry.getDate());
+        dailyEntryResponse.setTotalCalories(dailyEntry.getTotalCalories());
+        return dailyEntryResponse;
     }
 
-    public List<DailyEntryResponseDTO> readDailyEntries() {
+    public List<DailyEntryResponse> readDailyEntries() {
         // Dobavi trenutno ulogovanog korisnika
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByUsername(username);
@@ -152,20 +149,20 @@ public class FoodService {
         List<DailyEntry> dailyEntries = dailyEntryRepository.findAllByUser(user);
 
         // Pripremi listu DTO-ova za povratak
-        List<DailyEntryResponseDTO> responseList = new ArrayList<>();
+        List<DailyEntryResponse> responseList = new ArrayList<>();
 
         for (DailyEntry dailyEntry : dailyEntries) {
             List<FoodEntry> entries = dailyEntry.getFoodEntries();
-            List<FoodEntryRequestDTO> entriesDTO = new ArrayList<>();
+            List<FoodEntryRequest> entriesDTO = new ArrayList<>();
 
             for (FoodEntry entry : entries) {
-                FoodEntryRequestDTO feDTO = new FoodEntryRequestDTO();
+                FoodEntryRequest feDTO = new FoodEntryRequest();
                 feDTO.setFoodName(entry.getFoodItem().getName());
                 feDTO.setGrams(entry.getGrams());
                 entriesDTO.add(feDTO);
             }
 
-            DailyEntryResponseDTO dto = new DailyEntryResponseDTO();
+            DailyEntryResponse dto = new DailyEntryResponse();
             dto.setId(dailyEntry.getId());
             dto.setDate(dailyEntry.getDate());
             dto.setTotalCalories(dailyEntry.getTotalCalories());

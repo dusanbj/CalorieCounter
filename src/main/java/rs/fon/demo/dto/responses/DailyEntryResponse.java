@@ -1,12 +1,14 @@
-package rs.fon.demo.dto;
+package rs.fon.demo.dto.responses;
+
+import rs.fon.demo.dto.requests.FoodEntryRequest;
 
 import java.time.LocalDate;
 import java.util.List;
 
-public class DailyEntryResponseDTO {
+public class DailyEntryResponse {
     private long id;
     private LocalDate date;
-    private List<FoodEntryRequestDTO> entries;
+    private List<FoodEntryRequest> entries;
     private double totalCalories;
 
     public double getTotalCalories() {
@@ -33,11 +35,11 @@ public class DailyEntryResponseDTO {
         this.date = date;
     }
 
-    public List<FoodEntryRequestDTO> getEntries() {
+    public List<FoodEntryRequest> getEntries() {
         return entries;
     }
 
-    public void setEntries(List<FoodEntryRequestDTO> entries) {
+    public void setEntries(List<FoodEntryRequest> entries) {
         this.entries = entries;
     }
 }

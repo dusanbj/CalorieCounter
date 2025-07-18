@@ -1,4 +1,4 @@
-package rs.fon.demo.responses;
+package rs.fon.demo.dto.responses;
 
 
 public class LoginResponse {

@@ -7,18 +7,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import rs.fon.demo.dto.responses.UserResponse;
 import rs.fon.demo.model.RefreshToken;
 import rs.fon.demo.model.Role;
 import rs.fon.demo.model.User;
 import rs.fon.demo.repositories.UserRepository;
-import rs.fon.demo.requests.LoginRequest;
-import rs.fon.demo.requests.RegisterRequest;
+import rs.fon.demo.dto.requests.LoginRequest;
+import rs.fon.demo.dto.requests.RegisterRequest;
 import rs.fon.demo.services.RefreshTokenService;
 import rs.fon.demo.services.TokenBlacklistService;
 import rs.fon.demo.services.UserService;
 import rs.fon.demo.utils.JwtUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -133,5 +135,11 @@ public class AuthController {
         refreshTokenService.deleteByUser(userOptional.get());
 
         return ResponseEntity.ok("Logged out successfully");
+    }
+
+    @GetMapping("/readUsers")
+    public ResponseEntity<List<UserResponse>> readUsers() {
+        List<UserResponse> users = userService.readAllUsers();
+        return new ResponseEntity<>(users, HttpStatus.OK);
     }
 }

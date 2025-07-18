@@ -44,13 +44,13 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .disable()
                 .authorizeRequests()
                 .antMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
-                .antMatchers("/food/createFoodItem").hasRole("ADMIN")
-                .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
-                .anyRequest().authenticated()
+//                .antMatchers("/food/createFoodItem").hasRole("ADMIN")
+//                .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
+//                .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+//        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

@@ -7,11 +7,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import rs.fon.demo.dto.responses.UserResponse;
 import rs.fon.demo.model.Role;
 import rs.fon.demo.model.User;
 import rs.fon.demo.repositories.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements UserDetailsService {
@@ -48,5 +50,11 @@ public class UserService implements UserDetailsService {
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
         return userRepository.save(user);
+    }
+
+    public List<UserResponse> readAllUsers() {
+        return userRepository.findAll().stream()
+                .map(user -> new UserResponse(user.getUsername(), user.getRole()))
+                .collect(Collectors.toList());
     }
 }

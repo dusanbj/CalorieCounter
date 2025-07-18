@@ -1,11 +1,6 @@
-package rs.fon.demo.dto;
+package rs.fon.demo.dto.requests;
 
-import rs.fon.demo.model.DailyEntry;
-import rs.fon.demo.model.FoodItem;
-
-import javax.persistence.ManyToOne;
-
-public class FoodEntryRequestDTO {
+public class FoodEntryRequest {
 
     private double grams;
 

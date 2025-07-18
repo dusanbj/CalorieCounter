@@ -1,4 +1,4 @@
-package rs.fon.demo.requests;
+package rs.fon.demo.dto.requests;
 
 import lombok.Data;
 import rs.fon.demo.model.Role;

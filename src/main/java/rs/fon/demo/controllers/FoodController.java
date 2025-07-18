@@ -5,10 +5,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rs.fon.demo.dto.DailyEntryResponseDTO;
-import rs.fon.demo.dto.FoodEntryRequestDTO;
-import rs.fon.demo.model.DailyEntry;
-import rs.fon.demo.model.FoodEntry;
+import rs.fon.demo.dto.responses.DailyEntryResponse;
+import rs.fon.demo.dto.requests.FoodEntryRequest;
 import rs.fon.demo.model.FoodItem;
 import rs.fon.demo.services.FoodService;
 
@@ -26,8 +24,8 @@ public class FoodController {
     }
 
     @PostMapping("/createEntry")
-    public ResponseEntity<DailyEntryResponseDTO> createEntry(@RequestBody FoodEntryRequestDTO foodEntryRequestDTO) {
-        return new ResponseEntity<>(foodService.createDailyEntry(foodEntryRequestDTO), HttpStatus.CREATED);
+    public ResponseEntity<DailyEntryResponse> createEntry(@RequestBody FoodEntryRequest foodEntryRequest) {
+        return new ResponseEntity<>(foodService.createDailyEntry(foodEntryRequest), HttpStatus.CREATED);
     }
 
     @PostMapping("/createFoodItem")
@@ -38,13 +36,13 @@ public class FoodController {
     //u params staviti datum u formatu "dd.MM.yyyy"
     //?date=12.07.2025
     @GetMapping("/readDailyEntry")
-    public ResponseEntity<DailyEntryResponseDTO> readDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date) {
-        DailyEntryResponseDTO dailyEntryResponseDTO = foodService.readDailyEntry(date);
-        return new ResponseEntity<>(dailyEntryResponseDTO, HttpStatus.OK);
+    public ResponseEntity<DailyEntryResponse> readDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date) {
+        DailyEntryResponse dailyEntryResponse = foodService.readDailyEntry(date);
+        return new ResponseEntity<>(dailyEntryResponse, HttpStatus.OK);
     }
     @GetMapping("/readDailyEntries")
-    public ResponseEntity<List<DailyEntryResponseDTO>> readDailyEntries() {
-        List<DailyEntryResponseDTO> dailyEntries = foodService.readDailyEntries();
+    public ResponseEntity<List<DailyEntryResponse>> readDailyEntries() {
+        List<DailyEntryResponse> dailyEntries = foodService.readDailyEntries();
         return new ResponseEntity<>(dailyEntries, HttpStatus.OK);
     }
     @GetMapping("/readFoodItem")
