@@ -1,11 +1,15 @@
 package rs.fon.demo.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+import rs.fon.demo.dto.requests.FoodItemRequest;
 import rs.fon.demo.dto.responses.DailyEntryResponse;
 import rs.fon.demo.dto.requests.FoodEntryRequest;
+import rs.fon.demo.dto.responses.FoodItemResponse;
 import rs.fon.demo.model.DailyEntry;
 import rs.fon.demo.model.FoodEntry;
 import rs.fon.demo.model.FoodItem;
@@ -19,6 +23,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Transactional
 @Service
 public class FoodService {
 
@@ -44,6 +49,7 @@ public class FoodService {
     //  2. proverava da li postoji danasnji dnevni unos za tog usera
     //  3. ako postoji poziva update za taj isti dnevni unos
     //  4. ako ne postoji - pravimo novi dnevni unos i unosimo prvu namirnicu za taj dan
+    @Transactional
     public DailyEntryResponse createDailyEntry(FoodEntryRequest foodEntryRequest) {
         //hvata usera
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -191,5 +197,25 @@ public class FoodService {
         Long id = dailyEntry.getId();
         dailyEntryRepository.deleteByUserAndDate(user, date);
         return id;
+    }
+
+    @Transactional
+    public FoodItemResponse updateFoodItem(Long id, FoodItemRequest dto) {
+
+        FoodItem item = foodItemRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Food item " + id + " not found"));
+
+        item.setName(dto.getName());
+        item.setCaloriesPer100g(dto.getCaloriesPer100g());
+
+        foodItemRepository.save(item);
+
+        FoodItemResponse resp = new FoodItemResponse();
+        resp.setId(item.getId());
+        resp.setName(item.getName());
+        resp.setCaloriesPer100g(item.getCaloriesPer100g());
+
+        return resp;
     }
 }

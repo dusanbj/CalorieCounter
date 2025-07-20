@@ -91,7 +91,6 @@ public class AuthController {
         response.put("accessToken", accessToken);
         response.put("refreshToken", refreshTokenData.get("token"));
         response.put("refreshTokenExpiry", refreshTokenData.get("expiryDate"));
-        response.put("role", userOptional.get().getRole()); //stavljeno zbog fronta
 
         return ResponseEntity.ok(response);
     }
@@ -138,7 +137,7 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
 
-    @GetMapping("/readUsers")
+    @GetMapping("/users")
     public ResponseEntity<List<UserResponse>> readUsers() {
         List<UserResponse> users = userService.readAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
