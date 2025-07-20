@@ -13,6 +13,10 @@ import rs.fon.demo.services.FoodService;
 import java.time.LocalDate;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:4200",
+        allowedHeaders = "*",
+        allowCredentials = "true",
+        methods = {RequestMethod.GET,RequestMethod.POST,RequestMethod.DELETE,RequestMethod.OPTIONS})
 @RestController
 @RequestMapping("/food")
 public class FoodController {

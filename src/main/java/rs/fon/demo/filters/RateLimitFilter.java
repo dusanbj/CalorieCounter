@@ -35,7 +35,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        String key = request.getRemoteAddr(); // Možeš ovde staviti i user ID ako je autentifikovan
+        String key = request.getRemoteAddr();
         Bucket bucket = cache.computeIfAbsent(key, k -> createNewBucket());
 
         if (bucket.tryConsume(1)) {

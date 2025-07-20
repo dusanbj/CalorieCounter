@@ -45,6 +45,9 @@ public class UserService implements UserDetailsService {
     }
 
     public User registerUser(String username, String password, Role role) {
+        if(userRepository.findByUsername(username) != null) {
+            throw new UsernameNotFoundException("User name " + username + " already exists");
+        }
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));

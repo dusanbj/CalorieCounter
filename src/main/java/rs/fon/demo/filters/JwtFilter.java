@@ -40,7 +40,6 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
-
         String authHeader = request.getHeader("Authorization");
         String jwt = null;
         String username = null;
@@ -53,14 +52,12 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
                     return;
                 }
-
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 return;
             }
         }
-
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userService.loadUserByUsername(username);
 
@@ -80,7 +77,6 @@ public class JwtFilter extends org.springframework.web.filter.OncePerRequestFilt
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

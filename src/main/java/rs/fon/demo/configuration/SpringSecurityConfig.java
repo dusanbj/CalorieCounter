@@ -43,14 +43,14 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf()
                 .disable()
                 .authorizeRequests()
-                .antMatchers("/auth/register", "/auth/login", "/auth/refresh").permitAll()
-//                .antMatchers("/food/createFoodItem").hasRole("ADMIN")
-//                .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
-//                .anyRequest().authenticated()
+                .antMatchers("/auth/register", "/auth/login", "/auth/refresh", "food/readFoodItems").permitAll()
+                .antMatchers("/food/createFoodItem", "/auth/readUsers").hasRole("ADMIN")
+                .antMatchers("/food/**").hasAnyRole("USER", "ADMIN")
+                .anyRequest().authenticated()
                 .and().sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
-//        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean
