@@ -66,8 +66,10 @@ public class FoodController {
     }
     //u params staviti datum u formatu "dd.MM.yyyy"
     //?date=12.07.2025
+    //prebaceno na ?date=2025-07-21
+
     @DeleteMapping("/daily-entry")
-    public ResponseEntity<Long> deleteDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date) {
+    public ResponseEntity<Long> deleteDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         Long id = foodService.deleteDailyEntry(date);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
