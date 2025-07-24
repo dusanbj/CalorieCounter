@@ -31,51 +31,59 @@ public class FoodController {
         this.foodService = foodService;
     }
 
-    @PostMapping("/food-entry")
+    @PostMapping("/food-entries")
     public ResponseEntity<DailyEntryResponse> createEntry(@RequestBody FoodEntryRequest foodEntryRequest) {
         return new ResponseEntity<>(foodService.createDailyEntry(foodEntryRequest), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/food-item")
+    @PostMapping("/food-items")
     public ResponseEntity<FoodItem> createFoodItem(@RequestBody FoodItem foodItem) {
         return new ResponseEntity<>(foodService.createFoodItem(foodItem), HttpStatus.CREATED);
     }
 
-    //u params staviti datum u formatu "dd.MM.yyyy"
-    //?date=12.07.2025
-    @GetMapping("/daily-entry")
-    public ResponseEntity<DailyEntryResponse> readDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate date) {
-        DailyEntryResponse dailyEntryResponse = foodService.readDailyEntry(date);
-        return new ResponseEntity<>(dailyEntryResponse, HttpStatus.OK);
-    }
+    //u params staviti datum u formatu "yyyy-MM-dd"
+    //?date=2025-07-24
     @GetMapping("/daily-entries")
-    public ResponseEntity<List<DailyEntryResponse>> readDailyEntries() {
-        List<DailyEntryResponse> dailyEntries = foodService.readDailyEntries();
-        return new ResponseEntity<>(dailyEntries, HttpStatus.OK);
-    }
-    @GetMapping("/food-item")
-    public ResponseEntity<FoodItem> readFoodItem(@RequestParam("name") String name) {
-        FoodItem foodItem = foodService.readFoodItem(name);
-        return new ResponseEntity<>(foodItem, HttpStatus.OK);
-    }
-    @GetMapping("/food-items")
-    public ResponseEntity<List<FoodItem>> readFoodItems() {
-        List<FoodItem> foodItems = foodService.readFoodItems();
-        return new ResponseEntity<>(foodItems, HttpStatus.OK);
-    }
-    //u params staviti datum u formatu "dd.MM.yyyy"
-    //?date=12.07.2025
-    //prebaceno na ?date=2025-07-21
+    public ResponseEntity<?> readDailyEntries(
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(pattern = "yyyy-MM-dd")
+            LocalDate date) {
 
-    @DeleteMapping("/daily-entry")
+        if (date == null) {
+            // nema ?date u URL‑u => vrati listu
+            List<DailyEntryResponse> allEntries = foodService.readDailyEntries();
+            return ResponseEntity.ok(allEntries);
+        } else {
+            // ima ?date=… => vrati samo za taj datum
+            DailyEntryResponse single = foodService.readDailyEntry(date);
+            return ResponseEntity.ok(single);
+        }
+    }
+
+    @GetMapping("/food-items")
+    public ResponseEntity<?> readFoodItems(@RequestParam(value = "name", required = false) String name) {
+        if (name != null && !name.isBlank()) {
+            // ako je ?name= prosleđen
+            FoodItem foodItem = foodService.readFoodItem(name);
+            return ResponseEntity.ok(foodItem);
+        } else {
+        // ako name NIJE prosleđen
+        List<FoodItem> foodItems = foodService.readFoodItems();
+        return ResponseEntity.ok(foodItems);
+            }
+    }
+
+    //u params staviti datum u formatu "yyyy-MM-dd"
+    //?date=2025-07-21
+    @DeleteMapping("/daily-entries")
     public ResponseEntity<Long> deleteDailyEntry(@RequestParam("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         Long id = foodService.deleteDailyEntry(date);
         return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/food-item/{id}")
+    @PutMapping("/food-items/{id}")
     public ResponseEntity<FoodItemResponse> updateFoodItem(
             @PathVariable Long id,
             @Valid @RequestBody FoodItemRequest requestBody) {
